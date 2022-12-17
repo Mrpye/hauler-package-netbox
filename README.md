@@ -1,2 +1,2 @@
-# hauler-package-netbox
-This is a package for hauler to install netbox
+# NetboxPackage
+Package to Cargo Deployment Tool
