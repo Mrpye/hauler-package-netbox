@@ -5,14 +5,14 @@ meta_data:
   package_version: 1.0.1
   author: Andrew Pye
   contact: test@test.com
-  git_package: https://api.github.com/Mrpye/hauler-package-power-dns
+  git_package: https://api.github.com/Mrpye/hauler-package-netbox
   git_project: ""
   git_branch: master
   create_date: "2022-06-30 17:06:18"
   update_date: "2022-12-12 07:11:42"
   vars:
     default_netbox_namespace: netbox
-    github_project: Mrpye/NetboxPackage
+    github_project: Mrpye/hauler-package-netbox
 skip_image_download: false
 application_profiles:
   - name: default
