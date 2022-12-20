@@ -332,7 +332,7 @@ parameters:
     description: ""
     hidden: false
     app_profile: basic-setup
-    template: "{{file_path `netbox.sql`}}"
+    template: "{{file_path `data/netbox.sql`}}"
     value: ""
     input_type: text
 data: {}
