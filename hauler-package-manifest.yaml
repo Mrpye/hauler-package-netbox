@@ -7,7 +7,7 @@ meta_data:
   contact: test@test.com
   git_package: https://api.github.com/Mrpye/hauler-package-netbox
   git_project: ""
-  git_branch: master
+  git_branch: main
   create_date: "2022-06-30 17:06:18"
   update_date: "2022-12-12 07:11:42"
   vars:
