@@ -1,143 +1,143 @@
 meta_data:
-    package_name: Netbox
-    description: This installs Netbox into K8s Cluster
-    app_version: 1.0.0
-    package_version: 1.0.1
-    author: Andrew Pye
-    contact: test@test.com
-    git_package: https://api.github.com/Mrpye/hauler-package-power-dns
-    git_project: ""
-    git_branch: master
-    create_date: "2022-06-30 17:06:18"
-    update_date: "2022-06-30 17:11:42"
-    vars:
-        default_netbox_namespace: netbox
-        github_project: Mrpye/NetboxPackage@main
-        gitlab_project: null
+  package_name: Netbox
+  description: This installs Netbox into K8s Cluster
+  app_version: 1.0.0
+  package_version: 1.0.1
+  author: Andrew Pye
+  contact: test@test.com
+  git_package: https://api.github.com/Mrpye/hauler-package-power-dns
+  git_project: ""
+  git_branch: master
+  create_date: "2022-06-30 17:06:18"
+  update_date: "2022-12-12 07:11:42"
+  vars:
+    default_netbox_namespace: netbox
+    github_project: Mrpye/NetboxPackage
 skip_image_download: false
 application_profiles:
-    - name: default
-      description: ""
-    - name: basic-setup
-      description: ""
+  - name: default
+    description: ""
+  - name: basic-setup
+    description: ""
 default_application_profile: default
 files:
-    - git|github:{{.Package.Meta.Vars.github_project}}:yaml/netbox-prereqs.template.yaml:yaml/netbox-prereqs.template.yaml
-    - git|github:{{.Package.Meta.Vars.github_project}}:yaml/netbox-svc-dns.yaml:yaml/netbox-svc-dns.yaml
-    - git|github:{{.Package.Meta.Vars.github_project}}:netbox-3.0.0.tgz:netbox-3.0.0.tgz
+  - git|github:{{.Package.Meta.Vars.github_project}}:yaml/netbox-prereqs.template.yaml:yaml/netbox-prereqs.template.yaml
+  - git|github:{{.Package.Meta.Vars.github_project}}:yaml/netbox-svc-dns.yaml:yaml/netbox-svc-dns.yaml
+  - git|github:{{.Package.Meta.Vars.github_project}}:netbox-3.0.0.tgz:netbox-3.0.0.tgz
+  - git|github:{{.Package.Meta.Vars.github_project}}:data/netbox.sql:data/netbox.sql
 documents: []
 images:
-    - image: netboxcommunity/netbox:v2.10.4
-    - image: busybox:1.32.1
-    - image: docker.io/bitnami/postgresql:11.11.0-debian-10-r0
-    - image: docker.io/bitnami/postgres-exporter:0.8.0-debian-10-r354
-    - image: docker.io/bitnami/minideb:buster
-    - image: docker.io/bitnami/redis:6.0.10-debian-10-r19
-    - image: docker.io/bitnami/redis-sentinel:6.0.10-debian-10-r18
-    - image: docker.io/bitnami/redis-exporter:1.16.0-debian-10-r7
-    - image: docker.io/bitnami/postgresql:12.11.0-debian-11-r13
+  - image: netboxcommunity/netbox:v2.10.4
+  - image: busybox:1.32.1
+  - image: docker.io/bitnami/postgresql:11.11.0-debian-10-r0
+  - image: docker.io/bitnami/postgres-exporter:0.8.0-debian-10-r354
+  - image: docker.io/bitnami/minideb:buster
+  - image: docker.io/bitnami/redis:6.0.10-debian-10-r19
+  - image: docker.io/bitnami/redis-sentinel:6.0.10-debian-10-r18
+  - image: docker.io/bitnami/redis-exporter:1.16.0-debian-10-r7
+  - image: docker.io/bitnami/postgresql:12.11.0-debian-11-r13
 actions:
-    - key: import_images
-      description: Import our images into docker hub or harbor
-      action: action_import_images
+  - key: import_images
+    description: Import our images into docker hub or harbor
+    action: action_import_images
+    config:
+      ignore_images: ""
+      include_images: ""
+      target_action: default
+  - key: k8_apply_netbox_prereqs
+    description: Add a description here
+    action: action_k8_apply
+    config:
+      file: yaml/netbox-prereqs.template.yaml
+      namespace: "{{get_param `namespace`}}"
+      process_tokens: true
+      target_action: default
+  - key: k8_delete_netbox_prereqs
+    description: Add a description here
+    action: action_k8_delete
+    config:
+      file: yaml/netbox-prereqs.template.yaml
+      namespace: "{{get_param `namespace`}}"
+      process_tokens: true
+      target_action: default
+  - key: helm_deploy
+    description: Deploy netbox helm chart
+    action: action_helm_deploy
+    config:
       config:
-        ignore_images: ""
-        include_images: ""
-        target_action: default
-    - key: k8_apply_netbox_prereqs
-      description: Add a description here
-      action: action_k8_apply
-      config:
-        file: yaml/netbox-prereqs.template.yaml
-        namespace: '{{get_param `namespace`}}'
-        process_tokens: true
-        target_action: default
-    - key: k8_delete_netbox_prereqs
-      description: Add a description here
-      action: action_k8_delete
-      config:
-        file: yaml/netbox-prereqs.template.yaml
-        namespace: '{{get_param `namespace`}}'
-        process_tokens: true
-        target_action: default
-    - key: helm_deploy
-      description: Deploy netbox helm chart
-      action: action_helm_deploy
-      config:
-        config:
-            fullnameOverride: '{{get_param `instance_name`}}'
+        fullnameOverride: "{{get_param `instance_name`}}"
+        image:
+          repository: "{{get_repo_image_registry `netbox`}}"
+          tag: v2.10.4
+        init:
+          image:
+            repository: "{{get_repo_image_registry `busybox`}}"
+            tag: 1.32.1
+        nameOverride: "{{get_param `instance_name`}}"
+        postgresql:
+          image:
+            repository: "{{get_repo_image_registry `postgresql`}}"
+            tag: 12.11.0-debian-11-r13
+          metrics:
             image:
-                repository: '{{get_repo_image_registry `netbox`}}'
-                tag: v2.10.4
-            init:
-                image:
-                    repository: '{{get_repo_image_registry `busybox`}}'
-                    tag: 1.32.1
-            nameOverride: '{{get_param `instance_name`}}'
-            postgresql:
-                image:
-                    repository: '{{get_repo_image_registry `postgresql`}}'
-                    tag: 12.11.0-debian-11-r13
-                metrics:
-                    image:
-                        repository: '{{get_repo_image_registry `postgres-exporter`}}'
-                        tag: 0.8.0-debian-10-r354
-                postgresqlPassword: postgresqlPassword
-                postgresqlPostgresPassword: PostgresPassword
-                volumePermissions:
-                    enabled: false
-                    image:
-                        repository: '{{get_repo_image_registry `minideb`}}'
-                        tag: buster
-            redis:
-                image:
-                    repository: '{{get_repo_image_registry `redis`}}'
-                    tag: 6.0.10-debian-10-r19
-                metrics:
-                    enabled: false
-                    image:
-                        repository: '{{get_repo_image_registry `redis-exporter`}}'
-                        tag: 1.16.0-debian-10-r7
-                sentinel:
-                    enabled: false
-                    image:
-                        repository: '{{get_repo_image_registry `redis-sentinel`}}'
-                        tag: 6.0.10-debian-10-r18
-                sysctlImage:
-                    enabled: false
-                    repository: '{{get_repo_image_registry `minideb`}}'
-                    tag: buster
-                volumePermissions:
-                    enabled: false
-                    image:
-                        repository: '{{get_repo_image_registry `minideb`}}'
-                        tag: buster
-            service:
-                port: "8080"
-                type: LoadBalancer
-            superuser:
-                apiToken: '{{get_param `admin_api_token`}}'
-                password: '{{get_param `admin_password`}}'
-        file: netbox-3.0.0.tgz
-        name: '{{get_param `instance_name`}}'
-        namespace: '{{get_param `namespace`}}'
-        target_action: default
-    - key: helm_delete
-      description: Add a description here
-      action: action_helm_delete
-      config:
-        name: '{{get_param `instance_name`}}'
-        namespace: '{{get_param `namespace`}}'
-        target_action: default
-    - key: get_service_ip
-      description: Add a description here
-      action: action_k8_service_ip
-      config:
-        name_regex: (netbox-v3.*)
-        namespace: '{{get_param `namespace`}}'
-        result_action: js
-        result_format: json
-        result_js: |4-
+              repository: "{{get_repo_image_registry `postgres-exporter`}}"
+              tag: 0.8.0-debian-10-r354
+          postgresqlPassword: postgresqlPassword
+          postgresqlPostgresPassword: PostgresPassword
+          volumePermissions:
+            enabled: false
+            image:
+              repository: "{{get_repo_image_registry `minideb`}}"
+              tag: buster
+        redis:
+          image:
+            repository: "{{get_repo_image_registry `redis`}}"
+            tag: 6.0.10-debian-10-r19
+          metrics:
+            enabled: false
+            image:
+              repository: "{{get_repo_image_registry `redis-exporter`}}"
+              tag: 1.16.0-debian-10-r7
+          sentinel:
+            enabled: false
+            image:
+              repository: "{{get_repo_image_registry `redis-sentinel`}}"
+              tag: 6.0.10-debian-10-r18
+          sysctlImage:
+            enabled: false
+            repository: "{{get_repo_image_registry `minideb`}}"
+            tag: buster
+          volumePermissions:
+            enabled: false
+            image:
+              repository: "{{get_repo_image_registry `minideb`}}"
+              tag: buster
+        service:
+          port: "8080"
+          type: LoadBalancer
+        superuser:
+          apiToken: "{{get_param `admin_api_token`}}"
+          password: "{{get_param `admin_password`}}"
+      file: netbox-3.0.0.tgz
+      name: "{{get_param `instance_name`}}"
+      namespace: "{{get_param `namespace`}}"
+      target_action: default
+  - key: helm_delete
+    description: Add a description here
+    action: action_helm_delete
+    config:
+      name: "{{get_param `instance_name`}}"
+      namespace: "{{get_param `namespace`}}"
+      target_action: default
+  - key: get_service_ip
+    description: Add a description here
+    action: action_k8_service_ip
+    config:
+      name_regex: (netbox-v3.*)
+      namespace: "{{get_param `namespace`}}"
+      result_action: js
+      result_format: json
+      result_js: |4-
                   function ActionResults(store, result) {
                     result=JSON.parse(result)
                     if (result.length > 0) {
@@ -150,186 +150,189 @@ actions:
                     }
                   	return true;
                   }
-        result_store: api
-        target_action: default
-    - key: dump_db
-      description: This action will dump the database
-      action: action_k8_exec
-      config:
-        command: env PGPASSWORD=postgresqlPassword pg_dump --file "/tmp/netbox.sql" --host "127.0.0.1" --port "5432" --username "netbox" --no-password --verbose --format=c --blobs "netbox"
-        namespace: '{{get_param `namespace`}}'
-        pod_name: '{{get_param `instance_name`}}-postgresql-0'
-        result_action: log
-        result_format: plain
-        result_store: api
-        result_template_file: ""
-        target_action: default
-    - key: import_db
-      description: This action will import the database
-      action: action_k8_exec
-      config:
-        command: env PGPASSWORD=PostgresPassword pg_restore --host "localhost" --port "5432" --username "postgres" --no-password --dbname "netbox" --verbose "/tmp/netbox.sql"
-        namespace: '{{get_param `namespace`}}'
-        pod_name: '{{get_param `instance_name`}}-postgresql-0'
-        result_action: log
-        result_format: plain
-        result_store: api
-        result_template_file: ""
-        target_action: default
-    - key: drop_db
-      description: This action will drop the database
-      action: action_k8_exec
-      config:
-        command: env PGPASSWORD=PostgresPassword psql -U postgres -c "drop database netbox"
-        namespace: '{{get_param `namespace`}}'
-        pod_name: '{{get_param `instance_name`}}-postgresql-0'
-        result_action: log
-        result_format: plain
-        result_store: api
-        result_template_file: ""
-        target_action: default
-    - key: create_db
-      description: This action will create the database
-      action: action_k8_exec
-      config:
-        command: env PGPASSWORD=PostgresPassword psql -U postgres -c "create database netbox"
-        namespace: '{{get_param `namespace`}}'
-        pod_name: '{{get_param `instance_name`}}-postgresql-0'
-        result_action: log
-        result_format: plain
-        result_store: api
-        result_template_file: ""
-        target_action: default
-    - key: download_db_dump
-      description: downloads the database dump
-      action: action_k8_copy
-      config:
-        container: '{{get_param `instance_name`}}-postgresql'
-        destination: '{{get_param `backup_file`}}'
-        namespace: '{{get_param `namespace`}}'
-        result_action: default
-        result_format: plain
-        result_store: api
-        source: '{{get_param `namespace`}}/{{get_param `instance_name`}}-postgresql-0:/tmp/netbox.sql'
-        target_action: default
-    - key: upload_db_dump
-      description: uploads the database dump
-      action: action_k8_copy
-      config:
-        container: '{{get_param `instance_name`}}-postgresql'
-        destination: '{{get_param `namespace`}}/{{get_param `instance_name`}}-postgresql-0:/tmp/netbox.sql'
-        namespace: '{{get_param `namespace`}}'
-        result_action: default
-        result_format: plain
-        result_store: api
-        source: '{{get_param `backup_file`}}'
-        target_action: default
-    - key: delete_ns
-      description: Add a description here
-      action: action_k8_delete_ns
-      config:
-        namespace: '{{get_param `namespace`}}'
-        target_action: default
-    - key: wait_for_deployment
-      description: Wait for the job to complete
-      action: action_k8_wait_status
-      config:
-        checks:
-            - deployment:{{get_param `instance_name`}}
-            - deployment:{{get_param `instance_name`}}-worker
-            - stateful:{{get_param `instance_name`}}-postgresql
-            - stateful:{{get_param `instance_name`}}-redis-master
-            - stateful:{{get_param `instance_name`}}-redis-slave
-        namespace: '{{get_param `namespace`}}'
-        result_action: log
-        result_format: plain
-        result_store: api
-        retry: 60
-        target_action: default
+      result_store: api
+      target_action: default
+  - key: dump_db
+    description: This action will dump the database
+    action: action_k8_exec
+    config:
+      command: env PGPASSWORD=postgresqlPassword pg_dump --file "/tmp/netbox.sql" --host "127.0.0.1" --port "5432" --username "netbox" --no-password --verbose --format=c --blobs "netbox"
+      namespace: "{{get_param `namespace`}}"
+      pod_name: "{{get_param `instance_name`}}-postgresql-0"
+      result_action: log
+      result_format: plain
+      result_store: api
+      result_template_file: ""
+      target_action: default
+  - key: import_db
+    description: This action will import the database
+    action: action_k8_exec
+    config:
+      command: env PGPASSWORD=PostgresPassword pg_restore --host "localhost" --port "5432" --username "postgres" --no-password --dbname "netbox" --verbose "/tmp/netbox.sql"
+      namespace: "{{get_param `namespace`}}"
+      pod_name: "{{get_param `instance_name`}}-postgresql-0"
+      result_action: log
+      result_format: plain
+      result_store: api
+      result_template_file: ""
+      target_action: default
+  - key: drop_db
+    description: This action will drop the database
+    action: action_k8_exec
+    config:
+      command: env PGPASSWORD=PostgresPassword psql -U postgres -c "drop database netbox"
+      namespace: "{{get_param `namespace`}}"
+      pod_name: "{{get_param `instance_name`}}-postgresql-0"
+      result_action: log
+      result_format: plain
+      result_store: api
+      result_template_file: ""
+      target_action: default
+  - key: create_db
+    description: This action will create the database
+    action: action_k8_exec
+    config:
+      command: env PGPASSWORD=PostgresPassword psql -U postgres -c "create database netbox"
+      namespace: "{{get_param `namespace`}}"
+      pod_name: "{{get_param `instance_name`}}-postgresql-0"
+      result_action: log
+      result_format: plain
+      result_store: api
+      result_template_file: ""
+      target_action: default
+  - key: download_db_dump
+    description: downloads the database dump
+    action: action_k8_copy
+    config:
+      container: "{{get_param `instance_name`}}-postgresql"
+      destination: "{{get_param `backup_file`}}"
+      namespace: "{{get_param `namespace`}}"
+      result_action: default
+      result_format: plain
+      result_store: api
+      source: "{{get_param `namespace`}}/{{get_param `instance_name`}}-postgresql-0:/tmp/netbox.sql"
+      target_action: default
+  - key: upload_db_dump
+    description: uploads the database dump
+    action: action_k8_copy
+    config:
+      container: "{{get_param `instance_name`}}-postgresql"
+      destination: "{{get_param `namespace`}}/{{get_param `instance_name`}}-postgresql-0:/tmp/netbox.sql"
+      namespace: "{{get_param `namespace`}}"
+      result_action: default
+      result_format: plain
+      result_store: api
+      source: "{{get_param `backup_file`}}"
+      target_action: default
+  - key: delete_ns
+    description: Add a description here
+    action: action_k8_delete_ns
+    config:
+      namespace: "{{get_param `namespace`}}"
+      target_action: default
+  - key: wait_for_deployment
+    description: Wait for the job to complete
+    action: action_k8_wait_status
+    config:
+      checks:
+        - deployment:{{get_param `instance_name`}}
+        - deployment:{{get_param `instance_name`}}-worker
+        - stateful:{{get_param `instance_name`}}-postgresql
+        - stateful:{{get_param `instance_name`}}-redis-master
+        - stateful:{{get_param `instance_name`}}-redis-slave
+      namespace: "{{get_param `namespace`}}"
+      result_action: log
+      result_format: plain
+      result_store: api
+      retry: 60
+      target_action: default
 jobs:
-    - key: install
-      title: Install the Package
-      description: ""
-      actions:
-        - action: import_images
-        - action: k8_apply_netbox_prereqs
-        - action: helm_deploy
-        - action: wait_for_deployment
-        - action: upload_db_dump
-          app_profile: basic-setup
-        - action: drop_db
-          app_profile: basic-setup
-        - action: create_db
-          app_profile: basic-setup
-        - action: import_db
-          app_profile: basic-setup
-        - action: get_service_ip
-      allowed_jobs:
-        - uninstall
-        - get_service
-        - backup_db
-        - restore_db
-    - key: uninstall
-      title: UnInstall the Package
-      description: ""
-      actions:
-        - action: helm_delete
-          continue_on_error: true
-        - action: k8_delete_netbox_prereqs
-        - action: delete_ns
-      allowed_jobs:
-        - install
-    - key: get_service
-      title: get the service url
-      description: ""
-      actions:
-        - action: get_service_ip
-      allowed_jobs: []
-    - key: backup_db
-      title: Backup the database
-      description: ""
-      actions:
-        - action: dump_db
-        - action: download_db_dump
-      allowed_jobs: []
-    - key: restore_db
-      title: Restore the database
-      description: ""
-      actions:
-        - action: upload_db_dump
-        - action: drop_db
-        - action: create_db
-        - action: import_db
-      allowed_jobs: []
+  - key: install
+    title: Install the Package
+    description: ""
+    actions:
+      - action: import_images
+      - action: k8_apply_netbox_prereqs
+      - action: helm_deploy
+      - action: wait_for_deployment
+      - action: upload_db_dump
+        app_profile: basic-setup
+      - action: drop_db
+        app_profile: basic-setup
+      - action: create_db
+        app_profile: basic-setup
+      - action: import_db
+        app_profile: basic-setup
+      - action: get_service_ip
+    allowed_jobs:
+      - uninstall
+      - get_service
+      - backup_db
+      - restore_db
+  - key: uninstall
+    title: UnInstall the Package
+    description: ""
+    actions:
+      - action: helm_delete
+        continue_on_error: true
+      - action: k8_delete_netbox_prereqs
+      - action: delete_ns
+    allowed_jobs:
+      - install
+  - key: get_service
+    title: get the service url
+    description: ""
+    actions:
+      - action: get_service_ip
+    allowed_jobs: []
+  - key: backup_db
+    title: Backup the database
+    description: ""
+    actions:
+      - action: dump_db
+      - action: download_db_dump
+    allowed_jobs: []
+  - key: restore_db
+    title: Restore the database
+    description: ""
+    actions:
+      - action: upload_db_dump
+      - action: drop_db
+      - action: create_db
+      - action: import_db
+    allowed_jobs: []
 parameters:
-    - key: instance_name
-      title: Instance Name
-      description: ""
-      value: netbox-v3
-      input_type: text
-    - key: namespace
-      title: Namespace
-      description: ""
-      value: netbox-v3
-      input_type: text
-    - key: admin_api_token
-      title: API Token
-      description: ""
-      value: CHANGE_ME
-      input_type: text
-    - key: admin_password
-      title: Admin Password
-      description: ""
-      value: PASSWORD
-      input_type: text
-    - key: storage_class_name
-      title: Storeage Class Name
-      description: ""
-      value: spectro-storage-class
-      input_type: text
-    - key: backup_file
-      title: backup file
-      description: ""
-      value: ./netbox.sql
-      input_type: text
+  - key: instance_name
+    title: Instance Name
+    description: ""
+    value: netbox-v3
+    input_type: text
+  - key: namespace
+    title: Namespace
+    description: ""
+    value: netbox-v3
+    input_type: text
+  - key: admin_api_token
+    title: API Token
+    description: ""
+    value: CHANGE_ME
+    input_type: text
+  - key: admin_password
+    title: Admin Password
+    description: ""
+    value: PASSWORD
+    input_type: text
+  - key: storage_class_name
+    title: Storeage Class Name
+    description: ""
+    value: spectro-storage-class
+    input_type: text
+  - key: backup_file
+    title: backup file
+    description: ""
+    hidden: false
+    app_profile: basic-setup
+    template: "{{file_path `netbox.sql`}}"
+    value: ""
+    input_type: text
 data: {}
